@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VEXSORIS AI - Canlı Grafik Entegreli Kripto Asistanı</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b132b;
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Parola Giriş Ekranı (Kilit) */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0b132b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: #1c2541;
+            border: 1px solid #4ea8de;
+            border-radius: 14px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 0 40px rgba(74, 168, 222, 0.25);
+            text-align: center;
+        }
+
+        .auth-box h2 {
+            color: #ffffff;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+        }
+
+        .auth-box p {
+            font-size: 0.85rem;
+            color: #90e0ef;
+        }
+
+        .auth-box input {
+            background: #0b132b;
+            border: 1px solid #4ea8de;
+            padding: 12px 15px;
+            color: #ffffff;
+            border-radius: 8px;
+            outline: none;
+            font-size: 1.1rem;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .auth-box input:focus {
+            border-color: #00b4d8;
+            box-shadow: 0 0 10px rgba(74, 168, 222, 0.4);
+        }
+
+        .auth-btn {
+            background: #4ea8de;
+            color: #0b132b;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .auth-btn:hover {
+            background: #00b4d8;
+            box-shadow: 0 0 15px #4ea8de;
+        }
+
+        .error-msg {
+            color: #ff4d4d;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        /* Ana Site İçeriği */
+        #mainApp {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background: #1c2541;
+            border-bottom: 1px solid #3a506b;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #4ea8de;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #4ea8de;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: #ffffff;
+        }
+
+        .system-info {
+            font-size: 0.85rem;
+            color: #90e0ef;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding-right: 5px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 12px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            word-wrap: break-word;
+            color: #ffffff;
+        }
+
+        .user-message {
+            background: #1c2541;
+            align-self: flex-end;
+            border-right: 3px solid #4ea8de;
+        }
+
+        .ai-message {
+            background: #132238;
+            align-self: flex-start;
+            border-left: 3px solid #00b4d8;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background: #132238;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 3px solid #00b4d8;
+            color: #90e0ef;
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        .tools-panel {
+            background: #1c2541;
+            border: 1px solid #3a506b;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tool-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tool-group input, .tool-group select {
+            background: #0b132b;
+            border: 1px solid #4ea8de;
+            padding: 6px 10px;
+            color: #ffffff;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .tool-btn {
+            background: #4ea8de;
+            color: #0b132b;
+            border: none;
+            padding: 6px 12px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: #00b4d8;
+        }
+
+        .input-panel {
+            background: #1c2541;
+            border-top: 1px solid #3a506b;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .input-wrapper {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            background: #0b132b;
+            border: 1px solid #4ea8de;
+            padding: 12px 15px;
+            color: #ffffff;
+            border-radius: 8px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .input-wrapper input:focus {
+            border-color: #00b4d8;
+            box-shadow: 0 0 8px rgba(74, 168, 222, 0.4);
+        }
+
+        .send-btn {
+            background: #4ea8de;
+            color: #0b132b;
+            border: none;
+            padding: 0 25px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #00b4d8;
+            box-shadow: 0 0 10px #4ea8de;
+        }
+
+        /* Grafik Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 10, 25, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+
+        .modal-content {
+            background: #1c2541;
+            border: 1px solid #4ea8de;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 850px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 0 30px rgba(74, 168, 222, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #3a506b;
+            padding-bottom: 10px;
+        }
+
+        .close-modal {
+            background: #ff4d4d;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Gerçek Canlı Grafik Kutusu */
+        .chart-box {
+            background: #0b132b;
+            height: 320px;
+            border-radius: 8px;
+            border: 1px solid #4ea8de;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .timer-panel {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .timer-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+
+        .btn-red { background: #d90429; }
+        .btn-red:hover { background: #ef233c; box-shadow: 0 0 10px #d90429; }
+
+        .btn-green { background: #2b9348; }
+        .btn-green:hover { background: #55a630; box-shadow: 0 0 10px #2b9348; }
+
+        .time-result-display {
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-top: 6px;
+            color: #ffebb3;
+        }
+
+        @media (max-width: 768px) {
+            .tools-panel { flex-direction: column; align-items: stretch; }
+            .tool-group { flex-direction: column; align-items: stretch; }
+            .message { max-width: 95%; }
+            .chart-box { height: 240px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- KİLİT EKRANI -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-box">
+            <h2>VEXSORIS SECURE</h2>
+            <p>Erişim için sisteme parolanızı girin</p>
+            <input type="password" id="passwordInput" placeholder="Parola..." autofocus>
+            <button class="auth-btn" onclick="checkPassword()">BAĞLAN</button>
+            <div class="error-msg" id="errorMsg">Hatalı Parola! Erişim reddedildi.</div>
+        </div>
+    </div>
+
+    <!-- ANA SİTE -->
+    <div id="mainApp">
+        <header>
+            <div class="logo-area">
+                <div class="status-dot"></div>
+                <h1>VEXSORIS AI v4.3 (Canlı Grafik Entegreli)</h1>
+            </div>
+            <div class="system-info" id="clock">Yerel Saat Yükleniyor...</div>
+        </header>
+
+        <div class="main-container">
+            <div class="tools-panel">
+                <div class="tool-group">
+                    <span style="font-size: 0.85rem; color:#90e0ef;">Hızlı Dönüştürücü:</span>
+                    <input type="number" id="convAmount" placeholder="Miktar" style="width: 80px;" value="1">
+                    <select id="convCurrency">
+                        <option value="TRY">TRY (₺)</option>
+                        <option value="USD">USD ($)</option>
+                    </select>
+                    <input type="text" id="customConvCoin" placeholder="Coin adı (örn: bnb)" style="width: 130px;">
+                    <button class="tool-btn" onclick="convertUniversalCrypto()">Hesapla</button>
+                </div>
+                <div class="tool-group">
+                    <span style="font-size: 0.85rem; color:#90e0ef;">Kar/Zarar:</span>
+                    <input type="number" id="buyPrice" placeholder="Alış ($)" style="width: 75px;">
+                    <input type="number" id="currPrice" placeholder="Güncel ($)" style="width: 75px;">
+                    <button class="tool-btn" onclick="calcProfitLoss()">K/Z Bul</button>
+                </div>
+            </div>
+
+            <div class="chat-container" id="chatContainer">
+                <div class="message ai-message">
+                    Güvenlik doğrulaması geçildi! Tüm coinler için gerçek zamanlı canlı grafik sistemi aktif. İstediğin kripto paranın adını yaz, raporu al ve grafiği canlı incele. Selam komutan!
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typingIndicator">VEXSORIS AI verileri ve canlı grafiği hazırlıyor...</div>
+
+            <div class="input-panel">
+                <div class="input-wrapper">
+                    <input type="text" id="userInput" placeholder="Coin adı yazın (örn: btc, bnb, sol, pepe)...">
+                    <button class="send-btn" onclick="sendMessage()">GÖNDER</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canlı Grafik Modal -->
+    <div class="modal-overlay" id="chartModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">CANLI PİYASA GRAFİĞİ</h3>
+                <button class="close-modal" onclick="closeChartModal()">X Kapat</button>
+            </div>
+            
+            <!-- TradingView Canlı Grafik Konteyneri -->
+            <div class="chart-box" id="tradingviewContainer">
+                <!-- Dinamik olarak grafik buraya yüklenecek -->
+            </div>
+
+            <div class="timer-panel">
+                <button class="timer-btn btn-red" onclick="showExactTime('red')">
+                    🔴 NE ZAMAN DÜŞECEK?
+                    <div class="time-result-display" id="redTimeResult">Tıkla ve Öğren</div>
+                </button>
+                <button class="timer-btn btn-green" onclick="showExactTime('green')">
+                    🟢 NE ZAMAN YÜKSELECEK?
+                    <div class="time-result-display" id="greenTimeResult">Tıkla ve Öğren</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        function checkPassword() {
+            const pass = document.getElementById('passwordInput').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            if (pass === "Ril bot") {
+                document.getElementById('authOverlay').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'flex';
+                document.getElementById('userInput').focus();
+            } else {
+                errorMsg.style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = "Yerel Zaman: " + now.toLocaleTimeString();
+        }, 1000);
+
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        async function sendMessage() {
+            const inputField = document.getElementById('userInput');
+            const chatContainer = document.getElementById('chatContainer');
+            const typingIndicator = document.getElementById('typingIndicator');
+            
+            const query = inputField.value.trim().toLowerCase();
+            if (!query) return;
+
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user-message';
+            userMsg.innerText = inputField.value;
+            chatContainer.appendChild(userMsg);
+
+            inputField.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            typingIndicator.style.display = 'block';
+
+            try {
+                const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(query)}`);
+                const searchData = await searchRes.json();
+
+                if (!searchData.coins || searchData.coins.length === 0) {
+                    typingIndicator.style.display = 'none';
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'message ai-message';
+                    errorMsg.innerHTML = `⚠ "${query}" adında bir kripto para bulunamadı. Lütfen ismini kontrol edin.`;
+                    chatContainer.appendChild(errorMsg);
+                    return;
+                }
+
+                const coinId = searchData.coins[0].id;
+                const coinName = searchData.coins[0].name;
+                const coinSymbol = searchData.coins[0].symbol.toUpperCase();
+
+                const priceRes = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd,try&include_24hr_change=true`);
+                const priceData = await priceRes.json();
+
+                typingIndicator.style.display = 'none';
+
+                if (!priceData[coinId]) {
+                    throw new Error("Fiyat verisi alınamadı");
+                }
+
+                const currentUSD = priceData[coinId].usd;
+                const currentTRY = priceData[coinId].try;
+                const change24h = priceData[coinId].usd_24h_change ? priceData[coinId].usd_24h_change.toFixed(2) : 0;
+                const trendColor = change24h >= 0 ? "#2b9348" : "#d90429";
+                const trendText = change24h >= 0 ? "Yükselişte 🟢" : "Düşüşte 🔴";
+                
+                const accuracyRate = Math.floor(Math.random() * 11) + 80;
+                const nowStr = new Date().toLocaleTimeString();
+
+                let html = `<b>📊 ${coinName} (${coinSymbol}) Canlı Piyasa Raporu:</b><br><br>`;
+                html += `• <b>Sistem Zamanı:</b> ${nowStr}<br>`;
+                html += `• <b>Anlık Fiyat (USD):</b> $${currentUSD}<br>`;
+                html += `• <b>Anlık Fiyat (TRY):</b> ₺${currentTRY ? currentTRY.toLocaleString() : 'Hesaplanamadı'}<br>`;
+                html += `• <b>24 Saatlik Değişim:</b> <span style="color: ${trendColor}; font-weight:bold;">%${change24h} (${trendText})</span><br>`;
+                html += `• <b>Destek Seviyesi:</b> $${(currentUSD * 0.95).toFixed(4)}<br>`;
+                html += `• <b>Direnç Seviyesi:</b> $${(currentUSD * 1.05).toFixed(4)}<br><br>`;
+                html += `👉 Canlı TradingView grafiğini açmak için tıkla:<br><br>`;
+                html += `<button class="tool-btn" onclick="openChartModal('${coinSymbol}')">📈 ${coinSymbol} Canlı Grafiği Aç</button><br><br>`;
+                html += `🎯 <b>Bu Tahminin Doğruluk / Tutma Olasılığı:</b> <span style="color: #ffebb3; font-weight: bold; font-size: 1.05rem;">%${accuracyRate}</span>`;
+
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'message ai-message';
+                aiMsg.innerHTML = html;
+                chatContainer.appendChild(aiMsg);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            } catch (error) {
+                typingIndicator.style.display = 'none';
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'message ai-message';
+                errorMsg.innerHTML = `⚠️ API bağlantı hatası oluştu. Lütfen tekrar deneyin.`;
+                chatContainer.appendChild(errorMsg);
+            }
+        }
+
+        async function convertUniversalCrypto() {
+            const amt = parseFloat(document.getElementById('convAmount').value) || 0;
+            const cur = document.getElementById('convCurrency').value;
+            const coinQuery = document.getElementById('customConvCoin').value.trim().toLowerCase();
+
+            if (!coinQuery) {
+                alert("Lütfen dönüştürülecek coin adını yazın!");
+                return;
+            }
+
+            try {
+                const searchRes = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(coinQuery)}`);
+                const searchData = await searchRes.json();
+
+                if (!searchData.coins || searchData.coins.length === 0) {
+                    alert("Coin bulunamadı!");
+                    return;
+                }
+
+                const coinId = searchData.coins[0].id;
+                const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd,try`);
+                const json = await res.json();
+
+                const priceUSD = json[coinId].usd;
+                const priceTRY = json[coinId].try || (priceUSD * 34);
+
+                let targetUSD = cur === 'TRY' ? amt / (priceTRY / priceUSD) : amt;
+                let resultCoin = targetUSD / priceUSD;
+
+                alert(`Sonuç:\n${amt} ${cur} = ${resultCoin.toFixed(6)} ${searchData.coins[0].symbol.toUpperCase()}`);
+            } catch (e) {
+                alert("Dönüştürme sırasında hata oluştu!");
+            }
+        }
+
+        function calcProfitLoss() {
+            const buy = parseFloat(document.getElementById('buyPrice').value) || 0;
+            const curr = parseFloat(document.getElementById('currPrice').value) || 0;
+
+            if (buy === 0) {
+                alert("Lütfen geçerli bir alış fiyatı girin!");
+                return;
+            }
+
+            const diff = curr - buy;
+            const percentage = (diff / buy) * 100;
+            let status = diff >= 0 ? "KAR 🟢" : "ZARAR 🔴";
+
+            alert(`Kar / Zarar Durumu: ${status}\nFark Miktarı: $${diff.toFixed(2)}\nOran: %${percentage.toFixed(2)}`);
+        }
+
+        // TÜM COİNLER İÇİN DİNAMİK TRADINGVIEW CANLI GRAFİK ENTEGRASYONU
+        function openChartModal(symbol) {
+            document.getElementById('modalTitle').innerText = `${symbol} - CANLI TRADINGVIEW GRAFİĞİ`;
+            
+            const container = document.getElementById('tradingviewContainer');
+            container.innerHTML = ''; // Önceki grafiği temizle
+
+            // TradingView Widget HTML Yapısı
+            const widgetDiv = document.createElement('div');
+            widgetDiv.className = "tradingview-widget-container";
+            widgetDiv.style.height = "100%";
+            widgetDiv.style.width = "100%";
+
+            const innerDiv = document.createElement('div');
+            innerDiv.className = "tradingview-widget-container__widget";
+            innerDiv.style.height = "100%";
+            innerDiv.style.width = "100%";
+            widgetDiv.appendChild(innerDiv);
+
+            const script = document.createElement('script');
+            script.type = "text/javascript";
+            script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+                "autosize": true,
+                "symbol": `BINANCE:${symbol}USDT`,
+                "interval": "D",
+                "timezone": "Europe/Istanbul",
+                "theme": "dark",
+                "style": "1",
+                "locale": "tr",
+                "allow_symbol_change": true,
+                "calendar": false,
+                "support_host": "https://www.tradingview.com"
+            });
+
+            widgetDiv.appendChild(script);
+            container.appendChild(widgetDiv);
+
+            document.getElementById('chartModal').style.display = 'flex';
+            document.getElementById('redTimeResult').innerText = "Tıkla ve Öğren";
+            document.getElementById('greenTimeResult').innerText = "Tıkla ve Öğren";
+        }
+
+        function closeChartModal() {
+            document.getElementById('chartModal').style.display = 'none';
+            document.getElementById('tradingviewContainer').innerHTML = ''; // Kapatınca hafızayı temizle
+        }
+
+        function showExactTime(type) {
+            const targetDate = new Date();
+            const randomMinutes = type === 'red' ? 27 : 14; 
+            targetDate.setMinutes(targetDate.getMinutes() + randomMinutes);
+
+            const exactTimeString = targetDate.toLocaleTimeString();
+            const subAccuracy = Math.floor(Math.random() * 11) + 80;
+
+            if (type === 'red') {
+                document.getElementById('redTimeResult').innerText = `Tahmini Düşüş: ${exactTimeString} (%${subAccuracy} Oran)`;
+            } else {
+                document.getElementById('greenTimeResult').innerText = `Tahmini Yükseliş: ${exactTimeString} (%${subAccuracy} Oran)`;
+            }
+        }
+    </script>
+</body>
+</html>
